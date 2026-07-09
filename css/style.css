@@ -1,0 +1,255 @@
+/* FitTrack — mobile-first, dark UI, big touch targets. */
+
+:root {
+  --bg: #0f1115;
+  --surface: #1a1e27;
+  --surface-2: #232936;
+  --border: #2e3546;
+  --text: #e8eaed;
+  --text-dim: #9aa3b2;
+  --accent: #4ade80;
+  --accent-strong: #22c55e;
+  --accent-ink: #07130b;
+  --danger: #f87171;
+  --radius: 14px;
+  --nav-height: 66px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; }
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- Header ---------- */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  padding-top: calc(12px + env(safe-area-inset-top));
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.app-title::first-letter { color: var(--accent); }
+
+.icon-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 1.2rem;
+  min-width: 48px;
+  min-height: 48px;
+  cursor: pointer;
+}
+
+.icon-btn:active { background: var(--surface-2); }
+
+/* ---------- Main / views ---------- */
+
+#main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + 24px);
+}
+
+.view > h2 {
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.card h3 {
+  font-size: 1.15rem;
+  margin-bottom: 10px;
+}
+
+.exercise-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.exercise-row:last-child { border-bottom: none; }
+
+.exercise-name { font-weight: 600; }
+
+.exercise-note {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.exercise-target {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+  font-size: 0.95rem;
+}
+
+.exercise-weight {
+  display: block;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.hint {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 18px;
+  line-height: 1.5;
+}
+
+.placeholder-card {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.placeholder-card .big-emoji { font-size: 3rem; display: block; margin-bottom: 12px; }
+
+.placeholder-card p { color: var(--text-dim); line-height: 1.5; margin-top: 8px; }
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  border-radius: var(--radius);
+  border: none;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 12px 16px;
+  text-align: center;
+}
+
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:active { background: var(--accent-strong); }
+
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+.file-btn { display: flex; align-items: center; justify-content: center; }
+
+/* ---------- Bottom navigation ---------- */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 20;
+}
+
+.nav-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.nav-btn .nav-icon { font-size: 1.4rem; }
+
+.nav-btn.active { color: var(--accent); }
+.nav-btn.active .nav-label { font-weight: 700; }
+
+.nav-badge {
+  position: absolute;
+  top: 8px;
+  right: calc(50% - 34px);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.6rem;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+/* ---------- Settings dialog ---------- */
+
+dialog {
+  margin: auto;
+  width: min(92vw, 420px);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+
+dialog h2 { font-size: 1.15rem; margin-bottom: 8px; }
+
+.dialog-text { color: var(--text-dim); font-size: 0.9rem; line-height: 1.5; margin-bottom: 16px; }
+
+.dialog-actions { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+.dialog-meta {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  text-align: center;
+  margin-bottom: 14px;
+}
