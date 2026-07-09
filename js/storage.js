@@ -3,10 +3,10 @@
 // plus a schema bump handled in initStorage() — nothing else changes.
 
 const PREFIX = "ft.";
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 // Keys included in backup export/import. Grows with future schema versions.
-const DATA_KEYS = ["plans", "sessions", "weights", "settings"];
+const DATA_KEYS = ["plans", "sessions", "weights", "settings", "activeSession"];
 
 export function load(key, fallback = null) {
   const raw = localStorage.getItem(PREFIX + key);
@@ -28,15 +28,20 @@ export function uid() {
 }
 
 // Runs once per page load: seeds an empty install, migrates old schemas.
-export function initStorage(seedFn) {
+// migrations: { targetVersion: fn } — see migrations.js.
+export function initStorage(seedFn, migrations = {}) {
   const meta = load("meta");
   if (!meta) {
     seedFn();
     save("meta", { schemaVersion: SCHEMA_VERSION });
     return;
   }
-  // Future migrations, e.g.:
-  // if (meta.schemaVersion < 2) { save("foods", []); ... save("meta", { schemaVersion: 2 }); }
+  let version = meta.schemaVersion;
+  while (version < SCHEMA_VERSION) {
+    version++;
+    migrations[version]?.();
+  }
+  if (version !== meta.schemaVersion) save("meta", { schemaVersion: version });
 }
 
 export function exportAll() {

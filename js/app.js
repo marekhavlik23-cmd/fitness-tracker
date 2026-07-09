@@ -2,11 +2,12 @@
 
 import { initStorage, exportAll, importAll, SCHEMA_VERSION } from "./storage.js";
 import { seedDefaultData } from "./seed.js";
+import { MIGRATIONS } from "./migrations.js";
 import { renderWorkout } from "./views/workout.js";
 import { renderWeight } from "./views/weight.js";
 import { renderNutrition } from "./views/nutrition.js";
 
-export const APP_VERSION = "0.1.0";
+export const APP_VERSION = "0.2.0";
 
 const VIEWS = {
   workout: { hash: "#trenink", render: renderWorkout },
@@ -85,7 +86,7 @@ function registerServiceWorker() {
   }
 }
 
-initStorage(seedDefaultData);
+initStorage(seedDefaultData, MIGRATIONS);
 setupNavigation();
 setupSettings();
 switchView(viewNameFromHash());
