@@ -20,4 +20,20 @@ export const MIGRATIONS = {
     }
     save("plans", plans);
   },
+
+  // v3: exercises gained "restSec" (rest between sets). Backfill seed exercises
+  // by id; custom exercises stay null and use the app default.
+  3: () => {
+    const seedRest = new Map();
+    for (const plan of SEED_PLANS) {
+      for (const ex of plan.exercises) seedRest.set(ex.id, ex.restSec);
+    }
+    const plans = load("plans", []);
+    for (const plan of plans) {
+      for (const ex of plan.exercises) {
+        if (ex.restSec === undefined) ex.restSec = seedRest.get(ex.id) ?? null;
+      }
+    }
+    save("plans", plans);
+  },
 };

@@ -564,3 +564,55 @@ dialog h2 { font-size: 1.15rem; margin-bottom: 8px; }
 .history-ex span:first-child { font-weight: 600; }
 
 .history-ex span:last-child { color: var(--text-dim); text-align: right; }
+
+/* ---------- Rest timer ---------- */
+
+.rest-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + 12px);
+  background: var(--surface-2);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  overflow: hidden;
+  z-index: 15;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+.rest-progress {
+  position: absolute;
+  inset: 0;
+  background: rgba(74, 222, 128, 0.15);
+  transition: width 0.25s linear;
+}
+
+.rest-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+}
+
+.rest-info { display: flex; flex-direction: column; }
+
+.rest-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.rest-time {
+  font-size: 1.7rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.rest-actions { display: flex; gap: 8px; }
+
+.rest-spacer { height: 96px; }

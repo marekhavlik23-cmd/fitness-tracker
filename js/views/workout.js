@@ -104,6 +104,7 @@ function openExerciseDialog(el, plan, exercise) {
     min: document.getElementById("ex-min"),
     max: document.getElementById("ex-max"),
     weight: document.getElementById("ex-weight"),
+    rest: document.getElementById("ex-rest"),
     note: document.getElementById("ex-note"),
     howto: document.getElementById("ex-howto"),
   };
@@ -114,6 +115,7 @@ function openExerciseDialog(el, plan, exercise) {
   fields.min.value = exercise?.repsMin ?? 8;
   fields.max.value = exercise?.repsMax ?? 10;
   fields.weight.value = exercise?.weightKg ?? "";
+  fields.rest.value = exercise?.restSec ?? "";
   fields.note.value = exercise?.note ?? "";
   fields.howto.value = exercise?.howto ?? "";
 
@@ -140,6 +142,7 @@ function openExerciseDialog(el, plan, exercise) {
       repsMin,
       repsMax,
       weightKg: weightRaw === "" ? null : Number(weightRaw),
+      restSec: fields.rest.value.trim() === "" ? null : Number(fields.rest.value),
       note: fields.note.value.trim(),
       howto: fields.howto.value.trim(),
     };

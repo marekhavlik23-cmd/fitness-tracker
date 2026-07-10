@@ -3,7 +3,7 @@
 // plus a schema bump handled in initStorage() — nothing else changes.
 
 const PREFIX = "ft.";
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 // Keys included in backup export/import. Grows with future schema versions.
 const DATA_KEYS = ["plans", "sessions", "weights", "settings", "activeSession"];

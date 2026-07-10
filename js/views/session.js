@@ -1,9 +1,12 @@
 // Active workout mode: one exercise at a time, big checkable sets.
-// The in-progress session lives in ft.activeSession so it survives reloads
-// and accidental tab closes mid-workout.
+// Checking a set off starts a rest countdown (per-exercise restSec, default 90 s)
+// shown as a fixed bar; it beeps + vibrates when done. The in-progress session
+// (including a running rest) lives in ft.activeSession so it survives reloads.
 
 import { load, save, uid } from "../storage.js";
 import { escapeHtml, targetText, localDate } from "../format.js";
+
+const DEFAULT_REST_SEC = 90;
 
 export function hasActiveSession() {
   return load("activeSession") != null;
@@ -16,12 +19,14 @@ export function startSession(plan) {
     planName: plan.name,
     startedAt: Date.now(),
     currentIndex: 0,
+    rest: null, // { until: ms timestamp, totalSec }
     exercises: plan.exercises.map((ex) => ({
       exerciseId: ex.id,
       name: ex.name,
       note: ex.note || "",
       howto: ex.howto || "",
       mode: ex.mode,
+      restSec: ex.restSec ?? null,
       targetSets: ex.sets,
       targetRepsMin: ex.repsMin,
       targetRepsMax: ex.repsMax,
@@ -54,6 +59,69 @@ function buildSets(ex, sessions) {
   return sets;
 }
 
+// ---------- Rest timer: sound, vibration ----------
+
+let audioCtx = null;
+
+// Must be called from a user gesture (the set checkbox tap) so the beep
+// is allowed to play later when the countdown ends without interaction.
+function unlockAudio() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  } catch { audioCtx = null; }
+}
+
+function restOverAlert() {
+  navigator.vibrate?.([200, 100, 200]);
+  if (!audioCtx) return;
+  try {
+    const t0 = audioCtx.currentTime;
+    for (let i = 0; i < 3; i++) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = 880;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      const t = t0 + i * 0.28;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.4, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+      osc.start(t);
+      osc.stop(t + 0.24);
+    }
+  } catch { /* audio blocked — vibration already fired */ }
+}
+
+function fmtRestTime(totalSec) {
+  return `${Math.floor(totalSec / 60)}:${String(totalSec % 60).padStart(2, "0")}`;
+}
+
+// ---------- Screen wake lock (keep the display on mid-workout) ----------
+
+let wakeLock = null;
+
+async function acquireWakeLock() {
+  try {
+    wakeLock = await navigator.wakeLock?.request("screen");
+    wakeLock?.addEventListener("release", () => { wakeLock = null; });
+  } catch { /* unsupported or denied — not critical */ }
+}
+
+function releaseWakeLock() {
+  wakeLock?.release().catch(() => {});
+  wakeLock = null;
+}
+
+// The browser drops the lock when the tab is hidden; take it back on return.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && !wakeLock && hasActiveSession()) acquireWakeLock();
+});
+
+// ---------- Rendering ----------
+
+let restTimerId = null;
+
 function setCard(ex, set, i) {
   const unit = ex.mode === "time" ? "s" : "op.";
   const step = ex.mode === "time" ? 5 : 1;
@@ -81,6 +149,25 @@ function setCard(ex, set, i) {
           <span class="unit">${unit}</span>
         </div>
         <button data-action="adj" data-set="${i}" data-field="reps" data-delta="${step}" aria-label="Přidat">+</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function restBar(rest) {
+  const remainingSec = Math.max(0, Math.ceil((rest.until - Date.now()) / 1000));
+  const pct = Math.max(0, Math.min(100, ((rest.until - Date.now()) / (rest.totalSec * 1000)) * 100));
+  return `
+  <div class="rest-bar">
+    <div class="rest-progress" id="rest-progress" style="width:${pct}%"></div>
+    <div class="rest-inner">
+      <div class="rest-info">
+        <span class="rest-label">Odpočinek</span>
+        <span class="rest-time" id="rest-time">${fmtRestTime(remainingSec)}</span>
+      </div>
+      <div class="rest-actions">
+        <button class="btn-chip" data-action="rest-add">+30 s</button>
+        <button class="btn-chip" data-action="rest-skip">Přeskočit ▶</button>
       </div>
     </div>
   </div>`;
@@ -146,6 +233,19 @@ export function renderSession(el, onExit) {
   const isLast = idx === total - 1;
   const rerender = () => renderSession(el, onExit);
   const persist = () => save("activeSession", active);
+  const exit = () => {
+    clearInterval(restTimerId);
+    releaseWakeLock();
+    onExit();
+  };
+
+  if (!wakeLock) acquireWakeLock();
+
+  // A rest that expired while the page was closed/reloaded is over — drop it silently.
+  if (active.rest && active.rest.until <= Date.now()) {
+    active.rest = null;
+    persist();
+  }
 
   el.innerHTML = `
     <div class="session-head">
@@ -175,7 +275,32 @@ export function renderSession(el, onExit) {
       ${isLast
         ? `<button class="btn btn-primary" data-action="finish">Dokončit ✔</button>`
         : `<button class="btn btn-primary" data-action="next">Další →</button>`}
-    </div>`;
+    </div>
+    ${active.rest ? `${restBar(active.rest)}<div class="rest-spacer"></div>` : ""}`;
+
+  // Countdown ticker: updates the bar in place, alerts + clears when it hits zero.
+  clearInterval(restTimerId);
+  if (active.rest) {
+    restTimerId = setInterval(() => {
+      const timeEl = document.getElementById("rest-time");
+      if (!timeEl) {
+        clearInterval(restTimerId); // user navigated away from this view
+        return;
+      }
+      const remainingMs = active.rest.until - Date.now();
+      if (remainingMs <= 0) {
+        clearInterval(restTimerId);
+        active.rest = null;
+        persist();
+        restOverAlert();
+        rerender();
+        return;
+      }
+      timeEl.textContent = fmtRestTime(Math.ceil(remainingMs / 1000));
+      const fill = document.getElementById("rest-progress");
+      if (fill) fill.style.width = `${(remainingMs / (active.rest.totalSec * 1000)) * 100}%`;
+    }, 250);
+  }
 
   el.onclick = (e) => {
     const btn = e.target.closest("[data-action]");
@@ -191,8 +316,28 @@ export function renderSession(el, onExit) {
       persist();
       rerender();
     } else if (action === "toggle") {
-      const set = ex.sets[Number(btn.dataset.set)];
+      const setIndex = Number(btn.dataset.set);
+      const set = ex.sets[setIndex];
       set.done = !set.done;
+      if (set.done) {
+        unlockAudio(); // user gesture — allows the end-of-rest beep
+        const veryLastSet = isLast && setIndex === ex.sets.length - 1;
+        if (!veryLastSet) {
+          const sec = ex.restSec ?? DEFAULT_REST_SEC;
+          active.rest = { until: Date.now() + sec * 1000, totalSec: sec };
+        }
+      } else {
+        active.rest = null; // un-checking cancels the running rest
+      }
+      persist();
+      rerender();
+    } else if (action === "rest-add") {
+      active.rest.until += 30_000;
+      active.rest.totalSec += 30;
+      persist();
+      rerender();
+    } else if (action === "rest-skip") {
+      active.rest = null;
       persist();
       rerender();
     } else if (action === "next") {
@@ -206,13 +351,13 @@ export function renderSession(el, onExit) {
     } else if (action === "cancel") {
       if (confirm("Zrušit rozdělaný trénink? Nic se neuloží.")) {
         save("activeSession", null);
-        onExit();
+        exit();
       }
     } else if (action === "finish") {
       const doneCount = active.exercises.reduce((n, e) => n + e.sets.filter((s) => s.done).length, 0);
       if (doneCount === 0 && !confirm("Nemáš odškrtnutou žádnou sérii. Opravdu trénink uložit?")) return;
       finishSession(active);
-      onExit();
+      exit();
     }
   };
 
