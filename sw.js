@@ -1,6 +1,6 @@
 // Service worker: network-first with cache fallback.
 // Online you always get the freshest version, offline everything still works.
-const CACHE = "fittrack-v4";
+const CACHE = "fittrack-v5";
 
 const ASSETS = [
   "./",
@@ -12,6 +12,7 @@ const ASSETS = [
   "./js/seed.js",
   "./js/migrations.js",
   "./js/format.js",
+  "./js/chart.js",
   "./js/views/workout.js",
   "./js/views/session.js",
   "./js/views/weight.js",

@@ -4,9 +4,10 @@
 // (including a running rest) lives in ft.activeSession so it survives reloads.
 
 import { load, save, uid } from "../storage.js";
-import { escapeHtml, targetText, localDate } from "../format.js";
+import { escapeHtml, targetText, localDate, fmtKg } from "../format.js";
 
 const DEFAULT_REST_SEC = 90;
+const PROGRESSION_STEP_KG = 2.5;
 
 export function hasActiveSession() {
   return load("activeSession") != null;
@@ -20,18 +21,22 @@ export function startSession(plan) {
     startedAt: Date.now(),
     currentIndex: 0,
     rest: null, // { until: ms timestamp, totalSec }
-    exercises: plan.exercises.map((ex) => ({
-      exerciseId: ex.id,
-      name: ex.name,
-      note: ex.note || "",
-      howto: ex.howto || "",
-      mode: ex.mode,
-      restSec: ex.restSec ?? null,
-      targetSets: ex.sets,
-      targetRepsMin: ex.repsMin,
-      targetRepsMax: ex.repsMax,
-      sets: buildSets(ex, sessions),
-    })),
+    exercises: plan.exercises.map((ex) => {
+      const progression = computeProgression(ex, sessions);
+      return {
+        exerciseId: ex.id,
+        name: ex.name,
+        note: ex.note || "",
+        howto: ex.howto || "",
+        mode: ex.mode,
+        restSec: ex.restSec ?? null,
+        targetSets: ex.sets,
+        targetRepsMin: ex.repsMin,
+        targetRepsMax: ex.repsMax,
+        progression, // { fromWeight, toWeight } | null — shown as a tip, not enforced
+        sets: buildSets(ex, sessions, progression),
+      };
+    }),
   };
   save("activeSession", active);
 }
@@ -45,14 +50,32 @@ function lastLoggedSets(exerciseId, sessions) {
   return null;
 }
 
-function buildSets(ex, sessions) {
+// If every logged set last time hit the top of the target rep range at the
+// same weight, suggest bumping the weight — the classic beginner cue for
+// when to add load. Only for weighted rep-range exercises (not AMRAP/time).
+function computeProgression(ex, sessions) {
+  if (ex.mode !== "reps" || ex.weightKg == null) return null;
+  const last = lastLoggedSets(ex.id, sessions);
+  if (!last || last.length < ex.sets) return null;
+  const allAtTop = last.every((s) => s.weightKg != null && s.reps >= ex.repsMax);
+  if (!allAtTop) return null;
+  const weights = new Set(last.map((s) => s.weightKg));
+  if (weights.size > 1) return null; // mixed weights last time — nothing clean to suggest
+  const fromWeight = last[0].weightKg;
+  return { fromWeight, toWeight: Math.round((fromWeight + PROGRESSION_STEP_KG) * 2) / 2 };
+}
+
+function buildSets(ex, sessions, progression) {
   const prev = lastLoggedSets(ex.id, sessions);
   const sets = [];
   for (let i = 0; i < ex.sets; i++) {
     const p = prev ? prev[Math.min(i, prev.length - 1)] : null;
+    let weightKg = ex.weightKg == null ? null : p && p.weightKg != null ? p.weightKg : ex.weightKg;
+    if (progression) weightKg = progression.toWeight;
     sets.push({
-      reps: p ? p.reps : ex.mode === "amrap" ? 5 : ex.repsMin,
-      weightKg: ex.weightKg == null ? null : p && p.weightKg != null ? p.weightKg : ex.weightKg,
+      // progression bumps the weight, so aim back at the bottom of the rep range
+      reps: progression ? ex.repsMin : p ? p.reps : ex.mode === "amrap" ? 5 : ex.repsMin,
+      weightKg,
       done: false,
     });
   }
@@ -261,6 +284,8 @@ export function renderSession(el, onExit) {
       <h3>${escapeHtml(ex.name)}</h3>
       ${ex.note ? `<p class="exercise-note">${escapeHtml(ex.note)}</p>` : ""}
       <p class="session-target">Cíl: ${targetText({ mode: ex.mode, sets: ex.targetSets, repsMin: ex.targetRepsMin, repsMax: ex.targetRepsMax })}</p>
+      ${ex.progression ? `
+      <p class="progress-tip">🔥 Minule max opakování ve všech sériích — dnes zkus <strong>${fmtKg(ex.progression.toWeight)} kg</strong> (bylo ${fmtKg(ex.progression.fromWeight)} kg).</p>` : ""}
       ${ex.howto ? `
       <details class="howto">
         <summary>📖 Jak na to</summary>

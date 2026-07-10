@@ -3,7 +3,8 @@
 // 30/90/all ranges, recent entries list with delete.
 
 import { load, save } from "../storage.js";
-import { escapeHtml, fmtKg } from "../format.js";
+import { escapeHtml, fmtKg, fmtDateShort, fmtDateFull } from "../format.js";
+import { lineChartSvg } from "../chart.js";
 
 const TREND_THRESHOLD = 0.2; // kg/week considered "stable"
 const DAY_MS = 86_400_000;
@@ -14,14 +15,6 @@ let selectedDate = null; // chart point tapped by the user
 function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function fmtDateShort(dateStr) {
-  return new Date(`${dateStr}T12:00:00`).toLocaleDateString("cs-CZ", { day: "numeric", month: "numeric" });
-}
-
-function fmtDateFull(dateStr) {
-  return new Date(`${dateStr}T12:00:00`).toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "numeric" });
 }
 
 function upsertWeight(date, kg) {
@@ -75,63 +68,6 @@ function filterByRange(weights) {
   return weights.filter((w) => Date.parse(w.date) >= cutoff);
 }
 
-function niceTicks(min, max) {
-  for (const step of [0.5, 1, 2, 5, 10, 20]) {
-    const lo = Math.floor(min / step) * step;
-    const hi = Math.ceil(max / step) * step;
-    const count = Math.round((hi - lo) / step);
-    if (count <= 5) {
-      const ticks = [];
-      for (let v = lo; v <= hi + 1e-9; v += step) ticks.push(Math.round(v * 10) / 10);
-      return ticks;
-    }
-  }
-  return [min, max];
-}
-
-function chartSvg(points) {
-  const W = 343, H = 190;
-  const pad = { l: 38, r: 12, t: 10, b: 24 };
-  const kgs = points.map((p) => p.kg);
-  let min = Math.min(...kgs), max = Math.max(...kgs);
-  if (max - min < 1) { min -= 0.5; max += 0.5; }
-  const ticks = niceTicks(min, max);
-  min = ticks[0];
-  max = ticks[ticks.length - 1];
-
-  const t0 = Date.parse(points[0].date);
-  const t1 = Date.parse(points[points.length - 1].date);
-  const spanMs = Math.max(t1 - t0, DAY_MS);
-  const x = (p) => pad.l + ((Date.parse(p.date) - t0) / spanMs) * (W - pad.l - pad.r);
-  const y = (kg) => pad.t + (1 - (kg - min) / (max - min)) * (H - pad.t - pad.b);
-
-  const grid = ticks.map((v) => `
-    <line x1="${pad.l}" y1="${y(v)}" x2="${W - pad.r}" y2="${y(v)}" class="chart-grid"/>
-    <text x="${pad.l - 6}" y="${y(v) + 3}" class="chart-tick" text-anchor="end">${fmtKg(v)}</text>`).join("");
-
-  const path = points.map((p, i) => `${i === 0 ? "M" : "L"}${x(p).toFixed(1)},${y(p.kg).toFixed(1)}`).join(" ");
-
-  const dots = points.map((p, i) => {
-    const isLast = i === points.length - 1;
-    const isSelected = p.date === selectedDate;
-    return `
-      <circle cx="${x(p).toFixed(1)}" cy="${y(p.kg).toFixed(1)}" r="${isLast || isSelected ? 4.5 : 2.5}"
-        class="chart-dot${isLast ? " last" : ""}${isSelected ? " selected" : ""}" data-date="${p.date}"/>`;
-  }).join("");
-
-  const xLabels = `
-    <text x="${pad.l}" y="${H - 8}" class="chart-tick" text-anchor="start">${fmtDateShort(points[0].date)}</text>
-    <text x="${W - pad.r}" y="${H - 8}" class="chart-tick" text-anchor="end">${fmtDateShort(points[points.length - 1].date)}</text>`;
-
-  return `
-    <svg viewBox="0 0 ${W} ${H}" class="weight-chart" role="img" aria-label="Graf vývoje váhy">
-      ${grid}
-      <path d="${path}" class="chart-line"/>
-      ${dots}
-      ${points.length > 1 ? xLabels : ""}
-    </svg>`;
-}
-
 function chartCard(weights) {
   const points = filterByRange(weights);
   const chip = (value, label) =>
@@ -147,7 +83,9 @@ function chartCard(weights) {
       </div>
       ${selected ? `<p class="chart-selected">${fmtDateFull(selected.date)} · <strong>${fmtKg(selected.kg)} kg</strong></p>` : ""}
       ${points.length >= 2
-        ? chartSvg(points)
+        ? lineChartSvg(points.map((p) => ({ x: p.date, y: p.kg })), {
+            formatY: fmtKg, formatXShort: fmtDateShort, selectedX: selectedDate, ariaLabel: "Graf vývoje váhy",
+          })
         : `<p class="hint">Zapiš váhu aspoň dva dny a tady se ukáže graf.</p>`}
     </div>`;
 }
@@ -195,7 +133,7 @@ export function renderWeight(el) {
   el.onclick = (e) => {
     const dot = e.target.closest(".chart-dot");
     if (dot) {
-      selectedDate = selectedDate === dot.dataset.date ? null : dot.dataset.date;
+      selectedDate = selectedDate === dot.dataset.x ? null : dot.dataset.x;
       renderWeight(el);
       return;
     }

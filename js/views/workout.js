@@ -1,8 +1,10 @@
-// Workout view: plan overview + recommended start, plan editing, session history.
+// Workout view: plan overview + recommended start, plan editing, session history,
+// stats/records, and per-exercise strength charts.
 // The live workout itself is rendered by views/session.js.
 
 import { load, save, uid } from "../storage.js";
-import { escapeHtml, targetText, weightText, setSummary, fmtSessionDate } from "../format.js";
+import { escapeHtml, targetText, weightText, setSummary, fmtSessionDate, fmtKg, fmtDateShort, fmtDateFull } from "../format.js";
+import { lineChartSvg } from "../chart.js";
 import { hasActiveSession, startSession, renderSession } from "./session.js";
 
 let editingPlanId = null;
@@ -14,17 +16,20 @@ function pickRecommended(plans, lastPlanId) {
   return plans[(lastIndex + 1) % plans.length];
 }
 
-function exerciseRow(ex) {
+function exerciseRow(ex, planId) {
   return `
     <div class="exercise-row">
-      <div>
-        <span class="exercise-name">${escapeHtml(ex.name)}</span>
-        ${ex.note ? `<span class="exercise-note">${escapeHtml(ex.note)}</span>` : ""}
+      <div class="exercise-row-main">
+        <div>
+          <span class="exercise-name">${escapeHtml(ex.name)}</span>
+          ${ex.note ? `<span class="exercise-note">${escapeHtml(ex.note)}</span>` : ""}
+        </div>
+        <div class="exercise-target">
+          ${targetText(ex)}
+          <span class="exercise-weight">${weightText(ex)}</span>
+        </div>
       </div>
-      <div class="exercise-target">
-        ${targetText(ex)}
-        <span class="exercise-weight">${weightText(ex)}</span>
-      </div>
+      <button class="btn-icon-sm" data-action="stats-ex" data-plan="${planId}" data-ex="${ex.id}" aria-label="Graf progrese cviku">📈</button>
     </div>`;
 }
 
@@ -38,7 +43,7 @@ function planCard(plan) {
           <button class="btn-chip" data-action="edit" data-plan="${plan.id}">✏️ Upravit</button>
         </div>
       </div>
-      ${plan.exercises.map(exerciseRow).join("")}
+      ${plan.exercises.map((ex) => exerciseRow(ex, plan.id)).join("")}
     </div>`;
 }
 
@@ -88,6 +93,109 @@ function historyItem(session) {
         <button class="btn btn-ghost btn-small" data-action="del-session" data-id="${session.id}">🗑️ Smazat záznam</button>
       </div>
     </details>`;
+}
+
+// ---------- Stats & records ----------
+
+function computeStats(sessions, plans) {
+  const now = new Date();
+  const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const weekAgo = Date.now() - 7 * 86_400_000;
+
+  let totalVolume = 0;
+  for (const s of sessions) {
+    for (const e of s.exercises) {
+      for (const set of e.sets) {
+        if (set.weightKg != null) totalVolume += set.weightKg * set.reps;
+      }
+    }
+  }
+
+  const exerciseMeta = new Map();
+  for (const p of plans) for (const ex of p.exercises) exerciseMeta.set(ex.id, ex);
+
+  const bestByExercise = new Map(); // exerciseId -> { value, date, name, mode }
+  for (const s of sessions) {
+    for (const e of s.exercises) {
+      const meta = exerciseMeta.get(e.exerciseId);
+      if (!meta || (meta.mode !== "reps" && meta.mode !== "amrap")) continue;
+      const values = e.sets
+        .map((set) => (meta.mode === "reps" ? set.weightKg : set.reps))
+        .filter((v) => v != null);
+      if (!values.length) continue;
+      const best = Math.max(...values);
+      const current = bestByExercise.get(e.exerciseId);
+      if (!current || best > current.value) {
+        bestByExercise.set(e.exerciseId, { value: best, date: s.date, name: e.name, mode: meta.mode });
+      }
+    }
+  }
+  const records = [...bestByExercise.values()];
+
+  return {
+    totalWorkouts: sessions.length,
+    thisMonth: sessions.filter((s) => s.date.startsWith(monthPrefix)).length,
+    last7d: sessions.filter((s) => s.startedAt >= weekAgo).length,
+    totalVolume,
+    weightPRs: records.filter((r) => r.mode === "reps").sort((a, b) => b.value - a.value),
+    repPRs: records.filter((r) => r.mode === "amrap").sort((a, b) => b.value - a.value),
+  };
+}
+
+function statsCard(stats) {
+  if (stats.totalWorkouts === 0) return "";
+  const prRow = (r, unit) => `
+    <div class="pr-row"><span>${escapeHtml(r.name)}</span><span>${unit === "kg" ? fmtKg(r.value) : r.value}${unit === "kg" ? " kg" : "×"}</span></div>`;
+
+  return `
+    <details class="card stats-card">
+      <summary>📊 Statistiky a rekordy</summary>
+      <div class="stats-grid">
+        <div class="stat-box"><span class="stat-box-value">${stats.totalWorkouts}</span><span class="stat-box-label">tréninků celkem</span></div>
+        <div class="stat-box"><span class="stat-box-value">${stats.thisMonth}</span><span class="stat-box-label">tento měsíc</span></div>
+        <div class="stat-box"><span class="stat-box-value">${stats.last7d}</span><span class="stat-box-label">posl. 7 dní</span></div>
+        <div class="stat-box"><span class="stat-box-value">${Math.round(stats.totalVolume).toLocaleString("cs-CZ")}</span><span class="stat-box-label">kg zvednuto</span></div>
+      </div>
+      ${stats.weightPRs.length ? `<h4 class="stats-subhead">Váhové rekordy</h4>${stats.weightPRs.map((r) => prRow(r, "kg")).join("")}` : ""}
+      ${stats.repPRs.length ? `<h4 class="stats-subhead">Max opakování</h4>${stats.repPRs.map((r) => prRow(r, "x")).join("")}` : ""}
+    </details>`;
+}
+
+// ---------- Per-exercise strength chart dialog ----------
+
+function exerciseHistoryPoints(exerciseId, mode) {
+  const sessions = load("sessions", []).slice().sort((a, b) => a.startedAt - b.startedAt);
+  const points = [];
+  for (const s of sessions) {
+    const entry = s.exercises.find((e) => e.exerciseId === exerciseId && e.sets.length > 0);
+    if (!entry) continue;
+    const values = entry.sets
+      .map((set) => (mode === "reps" ? set.weightKg : set.reps))
+      .filter((v) => v != null);
+    if (!values.length) continue;
+    points.push({ x: s.date, y: Math.max(...values) });
+  }
+  return points;
+}
+
+function openExerciseStats(exercise) {
+  const dialog = document.getElementById("exercise-stats-dialog");
+  document.getElementById("exercise-stats-title").textContent = exercise.name;
+  const body = document.getElementById("exercise-stats-body");
+  const points = exerciseHistoryPoints(exercise.id, exercise.mode);
+  const unit = exercise.mode === "reps" ? "kg" : exercise.mode === "time" ? "s" : "op.";
+  const fmtVal = (v) => (exercise.mode === "reps" ? fmtKg(v) : String(Math.round(v)));
+
+  if (points.length < 2) {
+    body.innerHTML = `<p class="hint">Zatím málo odcvičených tréninků s tímto cvikem — graf se ukáže po druhém záznamu.</p>`;
+  } else {
+    const best = points.reduce((a, b) => (b.y > a.y ? b : a));
+    body.innerHTML = `
+      <p class="stat-pr">🏆 Rekord: <strong>${fmtVal(best.y)} ${unit}</strong> · ${fmtDateFull(best.x)}</p>
+      ${lineChartSvg(points, { formatY: fmtVal, formatXShort: fmtDateShort, ariaLabel: `Graf progrese: ${exercise.name}` })}`;
+  }
+  document.getElementById("exercise-stats-close").onclick = () => dialog.close();
+  dialog.showModal();
 }
 
 // ---------- Exercise add/edit dialog ----------
@@ -176,6 +284,7 @@ export function renderWorkout(el) {
 
   el.innerHTML = `
     ${recommended ? `<button class="btn btn-primary btn-big" data-action="start" data-plan="${recommended.id}">▶ Začít: ${escapeHtml(recommended.name)}</button>` : ""}
+    ${statsCard(computeStats(sessions, plans))}
     <h2>Tréninkové plány</h2>
     ${plans.map((p) => (p.id === editingPlanId ? planEditCard(p) : planCard(p))).join("")}
     <h2>Historie</h2>
@@ -203,6 +312,9 @@ export function renderWorkout(el) {
       openExerciseDialog(el, plan, null);
     } else if (action === "edit-ex" && plan) {
       openExerciseDialog(el, plan, plan.exercises.find((x) => x.id === btn.dataset.ex));
+    } else if (action === "stats-ex" && plan) {
+      const ex = plan.exercises.find((x) => x.id === btn.dataset.ex);
+      if (ex) openExerciseStats(ex);
     } else if (action === "del-ex" && plan) {
       const ex = plan.exercises.find((x) => x.id === btn.dataset.ex);
       if (ex && confirm(`Smazat cvik „${ex.name}“ z plánu?`)) {

@@ -36,3 +36,12 @@ export function localDate(ts) {
 export function fmtSessionDate(ts) {
   return new Date(ts).toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "numeric" });
 }
+
+// Formatters for plain "YYYY-MM-DD" date strings (weight entries, session.date).
+export function fmtDateShort(dateStr) {
+  return new Date(`${dateStr}T12:00:00`).toLocaleDateString("cs-CZ", { day: "numeric", month: "numeric" });
+}
+
+export function fmtDateFull(dateStr) {
+  return new Date(`${dateStr}T12:00:00`).toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "numeric" });
+}
