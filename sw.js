@@ -1,6 +1,6 @@
 // Service worker: network-first with cache fallback.
 // Online you always get the freshest version, offline everything still works.
-const CACHE = "fittrack-v3";
+const CACHE = "fittrack-v4";
 
 const ASSETS = [
   "./",

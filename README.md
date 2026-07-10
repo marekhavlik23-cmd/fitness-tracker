@@ -27,6 +27,6 @@ a otevřít http://localhost:8173.
 
 - [x] Fáze 1 — kostra appky: navigace, PWA (manifest + SW + ikony), úložiště se seed daty, záloha/obnova JSON
 - [x] Fáze 2 — Trénink: editace plánů, „Start tréninku“ mód s popisy techniky, historie
-- [ ] Fáze 3 — Váha: zápis, graf, trend
+- [x] Fáze 3 — Váha: zápis, graf, trend
 - [ ] Fáze 4 — nasazení (GitHub Pages) + instalace na telefon
 - [ ] Později — Jídelníček (schéma v2: `ft.foods`, `ft.mealLog`, `ft.nutritionTargets`)

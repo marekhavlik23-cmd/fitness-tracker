@@ -7,7 +7,7 @@ import { renderWorkout } from "./views/workout.js";
 import { renderWeight } from "./views/weight.js";
 import { renderNutrition } from "./views/nutrition.js";
 
-export const APP_VERSION = "0.2.1";
+export const APP_VERSION = "0.3.0";
 
 const VIEWS = {
   workout: { hash: "#trenink", render: renderWorkout },

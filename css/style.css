@@ -1,6 +1,7 @@
 /* FitTrack — mobile-first, dark UI, big touch targets. */
 
 :root {
+  color-scheme: dark;
   --bg: #0f1115;
   --surface: #1a1e27;
   --surface-2: #232936;
@@ -279,6 +280,12 @@ dialog h2 { font-size: 1.15rem; margin-bottom: 8px; }
 }
 
 .btn-chip:active { background: var(--border); }
+
+.btn-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
 
 .btn-icon-sm {
   background: var(--surface-2);
@@ -616,3 +623,79 @@ dialog h2 { font-size: 1.15rem; margin-bottom: 8px; }
 .rest-actions { display: flex; gap: 8px; }
 
 .rest-spacer { height: 96px; }
+
+/* ---------- Weight section ---------- */
+
+.stat-tile { text-align: center; padding: 20px 16px; }
+
+.stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat-value {
+  display: block;
+  font-size: 2.6rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  margin: 4px 0;
+}
+
+.stat-value small { font-size: 1.1rem; font-weight: 600; color: var(--text-dim); }
+
+.trend { font-size: 0.9rem; font-weight: 600; }
+
+.trend-down { color: var(--accent); }
+
+.trend-up { color: #fbbf24; }
+
+.trend-flat { color: var(--text-dim); font-weight: 400; }
+
+.weight-form { display: flex; gap: 10px; }
+
+.weight-form .field { flex: 1; min-width: 0; }
+
+.weight-chart { display: block; width: 100%; height: auto; }
+
+.chart-grid { stroke: var(--border); stroke-width: 1; }
+
+.chart-tick { fill: var(--text-dim); font-size: 10px; }
+
+.chart-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-dot { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; cursor: pointer; }
+
+.chart-dot.last, .chart-dot.selected { stroke-width: 2; }
+
+.chart-selected {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.chart-selected strong { color: var(--text); }
+
+.weight-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.weight-row:last-of-type { border-bottom: none; }
+
+.weight-row span:first-child { flex: 1; color: var(--text-dim); }
+
+.weight-row-kg { font-weight: 700; font-variant-numeric: tabular-nums; }
