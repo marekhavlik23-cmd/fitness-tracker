@@ -295,6 +295,15 @@ dialog h2 { font-size: 1.15rem; margin-bottom: 8px; }
   color: var(--accent-ink);
 }
 
+.btn-chip:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.btn-danger-ghost {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  margin-top: 10px;
+}
+
 .btn-icon-sm {
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -694,6 +703,39 @@ dialog h2 { font-size: 1.15rem; margin-bottom: 8px; }
   stroke-linecap: round;
 }
 
+.chart-line-secondary {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 8px;
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.legend-swatch.raw { background: var(--accent); }
+
+.legend-swatch.ma {
+  background-image: repeating-linear-gradient(to right, var(--text-dim) 0 4px, transparent 4px 7px);
+}
+
 .chart-dot { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; cursor: pointer; }
 
 .chart-dot.last, .chart-dot.selected { stroke-width: 2; }
@@ -720,6 +762,26 @@ dialog h2 { font-size: 1.15rem; margin-bottom: 8px; }
 .weight-row span:first-child { flex: 1; color: var(--text-dim); }
 
 .weight-row-kg { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.goal-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 4px;
+}
+
+.goal-progress { font-size: 0.95rem; }
+
+.goal-progress strong { color: var(--accent); }
+
+.goal-progress.goal-reached { color: var(--accent); font-weight: 700; }
+
+.goal-eta {
+  display: block;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
 
 /* ---------- Stats & records ---------- */
 

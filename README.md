@@ -34,4 +34,5 @@ a otevřít http://localhost:8173.
 - [x] Fáze 3 — Váha: zápis, graf, trend
 - [x] Fáze 4 — nasazení (GitHub Pages) + instalace na telefon
 - [x] Fáze 5 — progrese vah, grafy síly, statistiky a rekordy
+- [x] Fáze 6 — cílová váha s odhadem data, klouzavý průměr v grafu, více tréninkových plánů
 - [ ] Později — Jídelníček (schéma v2: `ft.foods`, `ft.mealLog`, `ft.nutritionTargets`)

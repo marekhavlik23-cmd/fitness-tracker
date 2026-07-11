@@ -10,10 +10,12 @@ import { hasActiveSession, startSession, renderSession } from "./session.js";
 let editingPlanId = null;
 
 // Alternate plans: whatever wasn't trained last time comes up first.
+// Empty plans (just created, no exercises yet) are never recommended.
 function pickRecommended(plans, lastPlanId) {
-  if (!plans.length) return null;
-  const lastIndex = plans.findIndex((p) => p.id === lastPlanId);
-  return plans[(lastIndex + 1) % plans.length];
+  const candidates = plans.filter((p) => p.exercises.length > 0);
+  if (!candidates.length) return null;
+  const lastIndex = candidates.findIndex((p) => p.id === lastPlanId);
+  return candidates[(lastIndex + 1) % candidates.length];
 }
 
 function exerciseRow(ex, planId) {
@@ -34,16 +36,19 @@ function exerciseRow(ex, planId) {
 }
 
 function planCard(plan) {
+  const empty = plan.exercises.length === 0;
   return `
     <div class="card">
       <div class="card-head">
         <h3>${escapeHtml(plan.name)}</h3>
         <div class="card-actions">
-          <button class="btn-chip" data-action="start" data-plan="${plan.id}">▶ Start</button>
+          <button class="btn-chip" data-action="start" data-plan="${plan.id}" ${empty ? "disabled" : ""}>▶ Start</button>
           <button class="btn-chip" data-action="edit" data-plan="${plan.id}">✏️ Upravit</button>
         </div>
       </div>
-      ${plan.exercises.map((ex) => exerciseRow(ex, plan.id)).join("")}
+      ${empty
+        ? `<p class="hint">Zatím bez cviků — přidej je přes „Upravit“.</p>`
+        : plan.exercises.map((ex) => exerciseRow(ex, plan.id)).join("")}
     </div>`;
 }
 
@@ -70,6 +75,7 @@ function planEditCard(plan) {
         <button class="btn btn-secondary" data-action="add-ex" data-plan="${plan.id}">+ Přidat cvik</button>
         <button class="btn btn-primary" data-action="done-edit">Hotovo</button>
       </div>
+      <button class="btn btn-danger-ghost" data-action="del-plan" data-plan="${plan.id}">🗑️ Smazat celý plán</button>
     </div>`;
 }
 
@@ -286,7 +292,9 @@ export function renderWorkout(el) {
     ${recommended ? `<button class="btn btn-primary btn-big" data-action="start" data-plan="${recommended.id}">▶ Začít: ${escapeHtml(recommended.name)}</button>` : ""}
     ${statsCard(computeStats(sessions, plans))}
     <h2>Tréninkové plány</h2>
+    ${plans.length ? "" : `<p class="hint">Zatím žádný tréninkový plán. Přidej první tlačítkem níže.</p>`}
     ${plans.map((p) => (p.id === editingPlanId ? planEditCard(p) : planCard(p))).join("")}
+    ${!editingPlanId ? `<button class="btn btn-secondary" data-action="add-plan">+ Nový tréninkový plán</button>` : ""}
     <h2>Historie</h2>
     ${sessions.length
       ? sessions.slice(0, 20).map(historyItem).join("")
@@ -299,7 +307,7 @@ export function renderWorkout(el) {
     const plans = load("plans", []);
     const plan = plans.find((p) => p.id === btn.dataset.plan);
 
-    if (action === "start" && plan) {
+    if (action === "start" && plan && plan.exercises.length > 0) {
       startSession(plan);
       renderWorkout(el);
     } else if (action === "edit" && plan) {
@@ -308,6 +316,18 @@ export function renderWorkout(el) {
     } else if (action === "done-edit") {
       editingPlanId = null;
       renderWorkout(el);
+    } else if (action === "add-plan") {
+      const newPlan = { id: uid(), name: "Nový plán", exercises: [] };
+      plans.push(newPlan);
+      save("plans", plans);
+      editingPlanId = newPlan.id;
+      renderWorkout(el);
+    } else if (action === "del-plan" && plan) {
+      if (confirm(`Opravdu smazat celý plán „${plan.name}“ i se všemi cviky? Odcvičená historie zůstane zachována.`)) {
+        save("plans", plans.filter((p) => p.id !== plan.id));
+        editingPlanId = null;
+        renderWorkout(el);
+      }
     } else if (action === "add-ex" && plan) {
       openExerciseDialog(el, plan, null);
     } else if (action === "edit-ex" && plan) {

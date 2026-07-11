@@ -18,12 +18,14 @@ export function niceTicks(min, max) {
   return [min, max];
 }
 
-// opts: { width, height, formatY(v), formatXShort(dateStr), selectedX, ariaLabel }
+// opts: { width, height, formatY(v), formatXShort(dateStr), selectedX, ariaLabel,
+//         secondary: [{x,y}] — optional muted dashed overlay (e.g. a moving average),
+//         drawn behind the primary line, sharing its x/y scale }
 export function lineChartSvg(points, opts = {}) {
-  const { width: W = 343, height: H = 190, formatY = String, formatXShort = String, selectedX = null, ariaLabel = "Graf" } = opts;
+  const { width: W = 343, height: H = 190, formatY = String, formatXShort = String, selectedX = null, ariaLabel = "Graf", secondary = null } = opts;
   const pad = { l: 38, r: 12, t: 10, b: 24 };
-  const ys = points.map((p) => p.y);
-  let min = Math.min(...ys), max = Math.max(...ys);
+  const allYs = points.map((p) => p.y).concat(secondary ? secondary.map((p) => p.y) : []);
+  let min = Math.min(...allYs), max = Math.max(...allYs);
   if (max - min < 1) { min -= 0.5; max += 0.5; }
   const ticks = niceTicks(min, max);
   min = ticks[0];
@@ -39,7 +41,13 @@ export function lineChartSvg(points, opts = {}) {
     <line x1="${pad.l}" y1="${y(v)}" x2="${W - pad.r}" y2="${y(v)}" class="chart-grid"/>
     <text x="${pad.l - 6}" y="${y(v) + 3}" class="chart-tick" text-anchor="end">${formatY(v)}</text>`).join("");
 
-  const path = points.map((p, i) => `${i === 0 ? "M" : "L"}${x(p).toFixed(1)},${y(p.y).toFixed(1)}`).join(" ");
+  const linePath = (pts) => pts.map((p, i) => `${i === 0 ? "M" : "L"}${x(p).toFixed(1)},${y(p.y).toFixed(1)}`).join(" ");
+
+  const secondaryPath = secondary && secondary.length > 1
+    ? `<path d="${linePath(secondary)}" class="chart-line-secondary"/>`
+    : "";
+
+  const path = linePath(points);
 
   const dots = points.map((p) => {
     const isLast = p === points[points.length - 1];
@@ -56,6 +64,7 @@ export function lineChartSvg(points, opts = {}) {
   return `
     <svg viewBox="0 0 ${W} ${H}" class="line-chart" role="img" aria-label="${ariaLabel}">
       ${grid}
+      ${secondaryPath}
       <path d="${path}" class="chart-line"/>
       ${dots}
       ${xLabels}
