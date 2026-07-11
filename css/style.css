@@ -763,6 +763,186 @@ dialog h2 { font-size: 1.15rem; margin-bottom: 8px; }
 
 .weight-row-kg { font-weight: 700; font-variant-numeric: tabular-nums; }
 
+/* ---------- Nutrition: day nav, summary, meals ---------- */
+
+.day-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.day-nav-label {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 8px 12px;
+  min-height: 44px;
+}
+
+.macro-row { margin-top: 12px; }
+
+.macro-row-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.macro-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.macro-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.meal-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.meal-item-row:last-of-type { border-bottom: none; }
+
+.meal-item-name { font-weight: 600; display: block; }
+
+.meal-item-detail { display: block; font-size: 0.8rem; color: var(--text-dim); margin-top: 1px; }
+
+/* ---------- Nutrition: add-food dialog tabs ---------- */
+
+.tab-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 10px 4px;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.food-tab { margin-bottom: 10px; }
+
+.food-search-input {
+  display: block;
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1rem;
+  padding: 12px;
+  min-height: 48px;
+  margin-bottom: 10px;
+}
+
+.food-results {
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.food-result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  color: var(--text);
+  text-align: left;
+  font-size: 0.9rem;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.food-result-kcal { color: var(--text-dim); font-size: 0.78rem; white-space: nowrap; margin-left: 10px; }
+
+.food-manage-row { gap: 8px; }
+
+.food-manage-row > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.food-detail {
+  background: var(--surface-2);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 4px;
+}
+
+.food-detail-name { font-weight: 700; margin-bottom: 8px; }
+
+.food-detail-macros { color: var(--text-dim); font-size: 0.85rem; margin: 8px 0; }
+
+.field-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.field-checkbox input { width: 18px; height: 18px; }
+
+.scan-camera-wrap {
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  aspect-ratio: 4 / 3;
+}
+
+.scan-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ---------- Nutrition: targets calculator ---------- */
+
+.calc-details {
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.calc-details summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin-bottom: 10px;
+}
+
+.calc-details summary::-webkit-details-marker { display: none; }
+
 .goal-value {
   font-size: 1.8rem;
   font-weight: 800;

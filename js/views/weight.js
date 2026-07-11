@@ -3,7 +3,7 @@
 // 30/90/all ranges, recent entries list with delete.
 
 import { load, save } from "../storage.js";
-import { escapeHtml, fmtKg, fmtDateShort, fmtDateFull } from "../format.js";
+import { escapeHtml, fmtKg, fmtDateShort, fmtDateFull, todayStr } from "../format.js";
 import { lineChartSvg } from "../chart.js";
 
 const TREND_THRESHOLD = 0.2; // kg/week considered "stable"
@@ -12,11 +12,6 @@ const DAY_MS = 86_400_000;
 let range = "30"; // "30" | "90" | "all"
 let selectedDate = null; // chart point tapped by the user
 let editingGoal = false;
-
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 function upsertWeight(date, kg) {
   const weights = load("weights", []);

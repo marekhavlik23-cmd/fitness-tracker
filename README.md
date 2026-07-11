@@ -36,4 +36,5 @@ a otevřít http://localhost:8173.
 - [x] Fáze 5 — progrese vah, grafy síly, statistiky a rekordy
 - [x] Fáze 6 — cílová váha s odhadem data, klouzavý průměr v grafu, více tréninkových plánů
 - [x] Fáze 7 — Trénink C: funkční celotělový trénink (hip thrust, tlak vestoje, přítahy osy, farmářská chůze, rotační core, lýtka)
+- [x] Fáze 8 — Jídelníček: denní zápis jídel, knihovna potravin, sken čárového kódu (Open Food Facts), cíle s kalkulačkou
 - [ ] Později — Jídelníček (schéma v2: `ft.foods`, `ft.mealLog`, `ft.nutritionTargets`)

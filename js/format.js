@@ -28,9 +28,16 @@ export function setSummary(mode, set) {
 }
 
 // Local YYYY-MM-DD (not UTC — late-evening workouts must keep their day).
-export function localDate(ts) {
-  const d = new Date(ts);
+export function isoDate(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export function localDate(ts) {
+  return isoDate(new Date(ts));
+}
+
+export function todayStr() {
+  return isoDate(new Date());
 }
 
 export function fmtSessionDate(ts) {

@@ -120,8 +120,60 @@ const PLAN_C = {
 
 export const SEED_PLANS = [PLAN_A, PLAN_B, PLAN_C];
 
+// Starter food library — typical values per 100 g (raw unless noted otherwise).
+// Real products vary by brand; these are a reasonable starting point Marek can
+// edit, and he can always add his own alongside them.
+export const SEED_FOODS = [
+  // --- bílkoviny ---
+  { id: "f1", name: "Kuřecí prsa, syrové", kcal: 165, protein: 31, carbs: 0, fat: 3.6 },
+  { id: "f2", name: "Krůtí prsa, syrové", kcal: 157, protein: 29, carbs: 0, fat: 3.6 },
+  { id: "f3", name: "Hovězí libové (svíčková), syrové", kcal: 143, protein: 21, carbs: 0, fat: 6 },
+  { id: "f4", name: "Vepřová panenka, syrová", kcal: 143, protein: 21, carbs: 0, fat: 6 },
+  { id: "f5", name: "Losos, syrový", kcal: 208, protein: 20, carbs: 0, fat: 13 },
+  { id: "f6", name: "Tuňák ve vlastní šťávě (konzerva)", kcal: 116, protein: 26, carbs: 0, fat: 1 },
+  { id: "f7", name: "Vejce slepičí", kcal: 155, protein: 13, carbs: 1.1, fat: 11 },
+  { id: "f8", name: "Tvaroh měkký odtučněný", kcal: 78, protein: 13, carbs: 4, fat: 0.3 },
+  { id: "f9", name: "Řecký jogurt bílý", kcal: 97, protein: 9, carbs: 4, fat: 5 },
+  { id: "f10", name: "Skyr bílý", kcal: 63, protein: 11, carbs: 4, fat: 0.2 },
+  { id: "f11", name: "Cottage sýr", kcal: 98, protein: 11, carbs: 3.4, fat: 4.3 },
+  { id: "f12", name: "Syrovátkový protein (prášek)", kcal: 380, protein: 75, carbs: 8, fat: 6 },
+  { id: "f13", name: "Čočka, vařená", kcal: 116, protein: 9, carbs: 20, fat: 0.4 },
+  { id: "f14", name: "Cizrna, vařená", kcal: 164, protein: 9, carbs: 27, fat: 2.6 },
+  // --- sacharidy ---
+  { id: "f15", name: "Rýže bílá, vařená", kcal: 130, protein: 2.7, carbs: 28, fat: 0.3 },
+  { id: "f16", name: "Rýže basmati, vařená", kcal: 121, protein: 3.5, carbs: 25, fat: 0.4 },
+  { id: "f17", name: "Brambory, vařené", kcal: 87, protein: 2, carbs: 20, fat: 0.1 },
+  { id: "f18", name: "Těstoviny, vařené", kcal: 131, protein: 5, carbs: 25, fat: 1.1 },
+  { id: "f19", name: "Ovesné vločky, syrové", kcal: 379, protein: 13, carbs: 68, fat: 7 },
+  { id: "f20", name: "Chléb konzumní", kcal: 247, protein: 8, carbs: 49, fat: 1.5 },
+  { id: "f21", name: "Chléb celozrnný", kcal: 219, protein: 9, carbs: 41, fat: 3 },
+  { id: "f22", name: "Rohlík", kcal: 290, protein: 9, carbs: 57, fat: 2.5 },
+  { id: "f23", name: "Banán", kcal: 89, protein: 1.1, carbs: 23, fat: 0.3 },
+  { id: "f24", name: "Jablko", kcal: 52, protein: 0.3, carbs: 14, fat: 0.2 },
+  { id: "f25", name: "Rýžové chlebíčky", kcal: 387, protein: 8, carbs: 81, fat: 2.8 },
+  // --- zelenina ---
+  { id: "f26", name: "Brokolice, vařená", kcal: 35, protein: 2.4, carbs: 7, fat: 0.4 },
+  { id: "f27", name: "Mrkev", kcal: 41, protein: 0.9, carbs: 10, fat: 0.2 },
+  { id: "f28", name: "Rajče", kcal: 18, protein: 0.9, carbs: 3.9, fat: 0.2 },
+  { id: "f29", name: "Okurka", kcal: 15, protein: 0.7, carbs: 3.6, fat: 0.1 },
+  { id: "f30", name: "Špenát", kcal: 23, protein: 2.9, carbs: 3.6, fat: 0.4 },
+  { id: "f31", name: "Paprika", kcal: 31, protein: 1, carbs: 6, fat: 0.3 },
+  // --- tuky ---
+  { id: "f32", name: "Olivový olej", kcal: 884, protein: 0, carbs: 0, fat: 100 },
+  { id: "f33", name: "Máslo", kcal: 717, protein: 0.9, carbs: 0.1, fat: 81 },
+  { id: "f34", name: "Arašídové máslo", kcal: 588, protein: 25, carbs: 20, fat: 50 },
+  { id: "f35", name: "Mandle", kcal: 579, protein: 21, carbs: 22, fat: 50 },
+  { id: "f36", name: "Vlašské ořechy", kcal: 654, protein: 15, carbs: 14, fat: 65 },
+  // --- mléčné ---
+  { id: "f37", name: "Mléko polotučné 1,5 %", kcal: 47, protein: 3.4, carbs: 4.8, fat: 1.5 },
+  { id: "f38", name: "Sýr eidam 30 %", kcal: 305, protein: 25, carbs: 0, fat: 22 },
+];
+
 export function seedDefaultData() {
   save("plans", SEED_PLANS);
+  save("foods", SEED_FOODS);
+  save("mealLog", []);
+  save("nutritionTargets", null);
   save("sessions", []);
   save("weights", []);
   save("settings", { lastPlanId: null });

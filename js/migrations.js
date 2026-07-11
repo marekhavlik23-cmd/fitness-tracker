@@ -2,7 +2,7 @@
 // on installs older than the current SCHEMA_VERSION.
 
 import { load, save } from "./storage.js";
-import { SEED_PLANS } from "./seed.js";
+import { SEED_PLANS, SEED_FOODS } from "./seed.js";
 
 export const MIGRATIONS = {
   // v2: exercises gained a "howto" technique field. Backfill seed exercises
@@ -49,5 +49,13 @@ export const MIGRATIONS = {
         save("plans", plans);
       }
     }
+  },
+
+  // v5: Jídelníček — added ft.foods (starter library) and ft.mealLog.
+  // ft.nutritionTargets needs no migration: load() already returns null for a
+  // missing key, same as an explicit "not set yet" — nothing to initialize.
+  5: () => {
+    if (load("foods") == null) save("foods", SEED_FOODS);
+    if (load("mealLog") == null) save("mealLog", []);
   },
 };

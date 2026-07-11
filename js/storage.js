@@ -3,10 +3,10 @@
 // plus a schema bump handled in initStorage() — nothing else changes.
 
 const PREFIX = "ft.";
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 // Keys included in backup export/import. Grows with future schema versions.
-const DATA_KEYS = ["plans", "sessions", "weights", "settings", "activeSession"];
+const DATA_KEYS = ["plans", "sessions", "weights", "settings", "activeSession", "foods", "mealLog", "nutritionTargets"];
 
 export function load(key, fallback = null) {
   const raw = localStorage.getItem(PREFIX + key);
