@@ -35,4 +35,5 @@ a otevřít http://localhost:8173.
 - [x] Fáze 4 — nasazení (GitHub Pages) + instalace na telefon
 - [x] Fáze 5 — progrese vah, grafy síly, statistiky a rekordy
 - [x] Fáze 6 — cílová váha s odhadem data, klouzavý průměr v grafu, více tréninkových plánů
+- [x] Fáze 7 — Trénink C: funkční celotělový trénink (hip thrust, tlak vestoje, přítahy osy, farmářská chůze, rotační core, lýtka)
 - [ ] Později — Jídelníček (schéma v2: `ft.foods`, `ft.mealLog`, `ft.nutritionTargets`)

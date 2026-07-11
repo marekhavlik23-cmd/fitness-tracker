@@ -36,4 +36,18 @@ export const MIGRATIONS = {
     }
     save("plans", plans);
   },
+
+  // v4: added Trénink C (functional third full-body day — hip thrust, standing
+  // press, barbell row, farmer's carry, rotational core, calves). Append it to
+  // existing installs; the id check just makes this migration idempotent.
+  4: () => {
+    const plans = load("plans", []);
+    if (!plans.some((p) => p.id === "plan-c")) {
+      const planC = SEED_PLANS.find((p) => p.id === "plan-c");
+      if (planC) {
+        plans.push(planC);
+        save("plans", plans);
+      }
+    }
+  },
 };

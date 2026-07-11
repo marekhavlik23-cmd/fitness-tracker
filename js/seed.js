@@ -81,7 +81,44 @@ const PLAN_B = {
   ],
 };
 
-export const SEED_PLANS = [PLAN_A, PLAN_B];
+const PLAN_C = {
+  id: "plan-c",
+  name: "Trénink C",
+  exercises: [
+    {
+      id: "c1", name: "Hip thrust s osou", mode: "reps", sets: 3, repsMin: 10, repsMax: 12, weightKg: 20, restSec: 120,
+      note: "dlouhá osa, podlož si ji přes boky ručníkem nebo podložkou",
+      howto: "Sedni si zády opřený o lavici (lopatky na hraně lavice), osu polož přes boky.\nChodidla na šířku boků, blízko u sebe, paty pevně na zemi.\nZatlač přes paty a zvedni boky nahoru, až je tělo v jedné rovné linii od kolen po ramena — nahoře na chvíli sevři hýždě.\nPomalu se vrať dolů, boky se mezi opakováními nesmí dotknout země.\nPozor: neklop hlavu dozadu a nepřetahuj v bedrech nahoře — pohyb končí v rovné linii, ne v prohnutí.",
+    },
+    {
+      id: "c2", name: "Tlak s dlouhou osou vestoje", mode: "reps", sets: 3, repsMin: 6, repsMax: 8, weightKg: 15, restSec: 120,
+      note: "dlouhá osa",
+      howto: "Stoj na šířku ramen, osu drž nadhmatem v úrovni klíčních kostí, lokty mírně vpředu.\nZpevni břicho a hýždě, ať se nezaklánějí záda, a vytlač osu nad hlavu do propnutých paží — hlavou lehce ustup, ať jde osa nahoru rovně.\nNahoře je osa nad středem chodidel, dolů spouštěj kontrolovaně zpět na ramena.\nPozor: netlač z prohnutých zad („bankování“) — když to jinak nejde, uber váhu.",
+    },
+    {
+      id: "c3", name: "Přítahy osy v předklonu", mode: "reps", sets: 3, repsMin: 8, repsMax: 10, weightKg: 25, restSec: 120,
+      note: "dlouhá osa",
+      howto: "Stoj, kolena mírně pokrčená, předklon v bocích asi 45°, záda rovná, osu drž nadhmatem o něco šíř než ramena.\nTáhni osu k dolní části břicha, lokty jdou podél těla nahoru a dozadu, na konci stáhni lopatky k sobě.\nPomalu spouštěj zpět do natažených paží.\nPozor: netrhej váhu švihem trupu — pokud se musíš narovnávat, aby to vyšlo, uber váhu.",
+    },
+    {
+      id: "c4", name: "Farmářská chůze", mode: "time", sets: 3, repsMin: 30, repsMax: 40, weightKg: 15, restSec: 90,
+      note: "jednoručky v obou rukou, váha je na kus",
+      howto: "Vezmi jednoručky do obou rukou — má to být citelně těžké, ale zvládnutelné — stoj vzpřímeně, ramena stažená dolů a dozadu.\nJdi vzpřímeně normálními kroky po dobu série, drž pevný úchop a nehrb se.\nNení dost místa na chůzi? Stůj na místě a jen drž váhu zpevněný po danou dobu.\nPozor: nenech ramena padat dopředu ani se naklánět na jednu stranu.",
+    },
+    {
+      id: "c5", name: "Ruský zkrut s jednoručkou", mode: "reps", sets: 3, repsMin: 16, repsMax: 20, weightKg: 5, restSec: 60,
+      note: "počet = obě strany dohromady",
+      howto: "Seď na zemi, kolena pokrčená, chodidla na zemi, trup zakloněný asi 45° dozadu s rovnými zády.\nDrž jednoručku oběma rukama před tělem a otáčej trupem od boku k boku, jednoručku polož vedle boku na každé straně.\nPohyb jde z trupu, ne jen z rukou.\nPozor: nekulať dolní záda — pokud to jinak nejde, seď víc vzpřímeně.",
+    },
+    {
+      id: "c6", name: "Výpony na lýtka s jednoručkami", mode: "reps", sets: 3, repsMin: 15, repsMax: 20, weightKg: 15, restSec: 60,
+      note: "jednoručky podél těla",
+      howto: "Stoj, jednoručky drž podél těla, špičky na vyvýšené hraně (schod, silná kniha), paty visí dolů — bez vyvýšení stačí i rovná podlaha.\nZvedni se co nejvýš na špičky, nahoře na chvíli podrž.\nPomalu klesej dolů, u vyvýšení až pod úroveň špiček pro plný rozsah.\nPozor: nehoupej se švihem, pohyb ať dělají lýtka, ne kolena.",
+    },
+  ],
+};
+
+export const SEED_PLANS = [PLAN_A, PLAN_B, PLAN_C];
 
 export function seedDefaultData() {
   save("plans", SEED_PLANS);
